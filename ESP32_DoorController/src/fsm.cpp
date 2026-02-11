@@ -14,6 +14,7 @@ void FSM::update() {
     }
 }
 
+// handles events like authorization and 
 void FSM::handleEvent(Event event) {
     switch(event) {
 
