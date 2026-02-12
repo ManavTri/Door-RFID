@@ -7,8 +7,9 @@
 class RFIDReader
 {
 private:
+    static constexpr int EEPROM_SIZE = 512;
     static constexpr int UID_SIZE = 8;
-    static int max_tags;
+    static constexpr int MAX_TAGS = EEPROM_SIZE / UID_SIZE;
     MFRC522 mfrc522;
     int ss_pin, rst_pin;
     EventCallback callback = nullptr;

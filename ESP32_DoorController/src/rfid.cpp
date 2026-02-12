@@ -6,7 +6,7 @@ RFIDReader::RFIDReader(int rst_pin, int ss_pin)
 void RFIDReader::begin() {
     SPI.begin();
     mfrc522.PCD_Init();
-    max_tags = EEPROM.length() / UID_SIZE;
+    EEPROM.begin(EEPROM_SIZE);
 }
 
 void RFIDReader::update() {
@@ -67,7 +67,7 @@ bool RFIDReader::isMaster(const byte uid[UID_SIZE]) {
 bool RFIDReader::isAuthorized(const byte uid[UID_SIZE]) {
     byte stored[UID_SIZE];
 
-    for (int i = 2; i < max_tags; i++) { 
+    for (int i = 2; i < MAX_TAGS; i++) { 
         readEEPROM(stored, i);
 
         bool empty = true;
@@ -88,7 +88,7 @@ bool RFIDReader::isAuthorized(const byte uid[UID_SIZE]) {
 bool RFIDReader::addTag(const byte uid[UID_SIZE]) {
     byte stored[UID_SIZE];
 
-    for (int i = 2; i < max_tags; i++) {
+    for (int i = 2; i < MAX_TAGS; i++) {
         readEEPROM(stored, i);
 
         bool empty = true;
@@ -111,7 +111,7 @@ bool RFIDReader::addTag(const byte uid[UID_SIZE]) {
 bool RFIDReader::removeTag(const byte uid[UID_SIZE]) {
     byte stored[UID_SIZE];
 
-    for (int i = 2; i < max_tags; i++) {
+    for (int i = 2; i < MAX_TAGS; i++) {
         readEEPROM(stored, i);
         if (uidEquals(uid, stored)) {
             clearEEPROM(i);
