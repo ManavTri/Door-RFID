@@ -3,9 +3,9 @@
 #include "passcode.h"
 extern "C" {
     #include <discord.h>
-    #include <discord/private/_gateway.h>
-    #include <discord/message.h>
-    #include <discord/user.h>
+    #include <_gateway.h>
+    #include <message.h>
+    #include <user.h>
 }
 
 class DiscordHandler
