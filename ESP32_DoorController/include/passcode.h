@@ -11,7 +11,7 @@ private:
     std::mt19937 rng;
     unsigned long genTime;
 public:
-    PasscodeManager(LCDDisplay& lcd, std::random_device rd);
+    PasscodeManager(LCDDisplay& lcd);
     void begin();
     void update();
     void generateNewPasscode();

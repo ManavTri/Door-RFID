@@ -1,6 +1,6 @@
 #include "passcode.h"
 
-PasscodeManager::PasscodeManager(LCDDisplay& lcd, std::random_device rd) : lcd(lcd), rng(rd) {}
+PasscodeManager::PasscodeManager(LCDDisplay& lcd) : lcd(lcd), rng(std::random_device{}()) {}
 
 void PasscodeManager::begin() {
     generateNewPasscode();
