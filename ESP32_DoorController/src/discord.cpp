@@ -1,6 +1,6 @@
 #include "discord.h"
 
-DiscordHandler::DiscordHandler(PasscodeManager passcode_manager)
+DiscordHandler::DiscordHandler(PasscodeManager& passcode_manager)
     : passcode_manager(passcode_manager) {}
 
 void DiscordHandler::begin() {

@@ -1,0 +1,3 @@
+[submodule "ESP32_DoorController/lib/esp-discord"]
+	path = ESP32_DoorController/lib/esp-discord
+	url = https://github.com/abobija/esp-discord.git
