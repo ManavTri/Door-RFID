@@ -1,4 +1,4 @@
-#include "discord.h"
+#include "discord_bot.h"
 
 DiscordHandler::DiscordHandler(PasscodeManager& passcode_manager)
     : passcode_manager(passcode_manager) {}
