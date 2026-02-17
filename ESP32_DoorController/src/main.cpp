@@ -7,6 +7,7 @@
 #include "motor.h"
 #include "lcd.h"
 #include "pins.h"
+#include "wifi_credentials.h"
 
 MotorController motor(MOTOR_STEP_PIN, MOTOR_DIR_PIN, MOTOR_RELAY_PIN);
 LCDDisplay lcd(LCD_I2C_ADDRESS, LCD_COLS, LCD_ROWS);
@@ -20,6 +21,7 @@ void setup() {
     rfid.setCallback([](Event e) {fsm.handleEvent(e);});
     rfid.begin();
     discordHandler.setCallback([](Event e) {fsm.handleEvent(e);});
+    discordHandler.setWiFiCredentials(wifi_SSID, wifi_password);
     discordHandler.begin();
 }
 
