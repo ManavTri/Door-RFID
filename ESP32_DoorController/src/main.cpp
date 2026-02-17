@@ -14,7 +14,7 @@ LCDDisplay lcd(LCD_I2C_ADDRESS, LCD_COLS, LCD_ROWS);
 FSM fsm(motor, lcd);
 RFIDReader rfid(RFID_RST_PIN, RFID_SS_PIN);
 PasscodeManager passcodeManager(lcd);
-DiscordHandler discordHandler(passcodeManager, "bot_door_controller");
+DiscordHandler discordHandler(passcodeManager);
 void setup() {
     Serial.begin(115200);
     fsm.begin();

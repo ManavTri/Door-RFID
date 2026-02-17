@@ -2,7 +2,7 @@
 #include <cstring>
 #include <cstdlib>
 
-DiscordHandler::DiscordHandler(PasscodeManager& pcm, String bot_name)
+DiscordHandler::DiscordHandler(PasscodeManager& pcm)
     : client(nullptr),
       passcodeManager(pcm),
       callback(nullptr),
@@ -11,23 +11,53 @@ DiscordHandler::DiscordHandler(PasscodeManager& pcm, String bot_name)
       requiredPermissionBits(0),
       SSID(),
       password(),
-      TAG(bot_name) {}
+      wifiEnterpriseMode(false) {}
 
-void DiscordHandler::setWiFiCredentials(const std::string ssid, const std::string pw) {
+void DiscordHandler::setWiFiPSK(const std::string& ssid,
+                                const std::string& pw) {
+    wifiEnterpriseMode = false;
     SSID = ssid;
     password = pw;
 }
 
+void DiscordHandler::setWiFiEnterprise(const std::string& ssid,
+                                       const std::string& identity,
+                                       const std::string& username,
+                                       const std::string& password) {
+    wifiEnterpriseMode = true;
+    SSID = ssid;
+    eapIdentity = identity;
+    eapUsername = username;
+    eapPassword = password;
+}
+
 esp_err_t DiscordHandler::begin() {
     if (SSID.empty()) {
-        ESP_LOGE(TAG, "WiFi SSID not set. Call setWiFiCredentials() first.");
+        ESP_LOGE(TAG, "WiFi SSID not set.");
         return ESP_FAIL;
     }
 
     ESP_LOGI(TAG, "Initializing WiFi (SSID: %s)...", SSID.c_str());
 
     WiFi.mode(WIFI_STA);
-    WiFi.begin(SSID.c_str(), password.c_str());
+    
+    if (wifiEnterpriseMode) {
+        ESP_LOGI(TAG, "Connecting using WPA2-Enterprise...");
+
+        esp_wifi_sta_wpa2_ent_set_identity(
+            (uint8_t*)eapIdentity.c_str(), eapIdentity.length());
+        esp_wifi_sta_wpa2_ent_set_username(
+            (uint8_t*)eapUsername.c_str(), eapUsername.length());
+        esp_wifi_sta_wpa2_ent_set_password(
+            (uint8_t*)eapPassword.c_str(), eapPassword.length());
+        esp_wifi_sta_wpa2_ent_enable();
+
+        WiFi.begin(SSID.c_str());
+    } else {
+        ESP_LOGI(TAG, "Connecting using WPA2-PSK...");
+        WiFi.begin(SSID.c_str(), password.c_str());
+    }
+
 
     int wifiAttempts = 0;
 
@@ -273,13 +303,24 @@ void DiscordHandler::handleAdminCommand(const std::vector<std::string>& tokens, 
         uint64_t bits = std::strtoull(tokens[2].c_str(), nullptr, 0);
         setRequiredPermissionBits(bits);
         sendSimpleMessage(msg->channel_id, "Required permissions set to: " + tokens[2]);
-    } else if (sub == "wifi") {
+    } else if (sub == "wifi_psk") {
         if (tokens.size() < 4) {
             sendSimpleMessage(msg->channel_id, "Usage: !admin wifi <ssid> <password>");
             return;
         }
-        setWiFiCredentials(tokens[2], tokens[3]);
-        sendSimpleMessage(msg->channel_id, "WiFi credentials updated. Rebooting...");
+        setWiFiPSK(tokens[2], tokens[3]);
+        sendSimpleMessage(msg->channel_id, "PSK WiFi credentials updated. Rebooting...");
+        delay(1000);
+        esp_restart();
+    } else if (sub == "wifi_enterprise") {
+        if (tokens.size() < 6) {
+            sendSimpleMessage(msg->channel_id,
+                "Usage: !admin wifi_enterprise <ssid> <identity> <username> <password>");
+            return;
+        }
+        setWiFiEnterprise(tokens[2], tokens[3], tokens[4], tokens[5]);
+        sendSimpleMessage(msg->channel_id,
+            "Enterprise WiFi updated. Rebooting...");
         delay(1000);
         esp_restart();
     } else if (sub == "config") {
