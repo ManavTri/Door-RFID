@@ -40,6 +40,7 @@ esp_err_t DiscordHandler::begin() {
     ESP_LOGI(TAG, "Initializing WiFi (SSID: %s)...", SSID.c_str());
 
     WiFi.mode(WIFI_STA);
+    WiFi.disconnect(true);
     
     if (wifiEnterpriseMode) {
         ESP_LOGI(TAG, "Connecting using WPA2-Enterprise...");
