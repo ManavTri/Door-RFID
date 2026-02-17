@@ -21,7 +21,7 @@ void setup() {
     rfid.setCallback([](Event e) {fsm.handleEvent(e);});
     rfid.begin();
     discordHandler.setCallback([](Event e) {fsm.handleEvent(e);});
-    discordHandler.setWiFiCredentials(wifi_SSID, wifi_password);
+    discordHandler.setWiFiPSK(wifi_SSID, wifi_password);
     discordHandler.begin();
 }
 
