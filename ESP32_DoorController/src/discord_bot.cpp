@@ -229,11 +229,11 @@ void DiscordHandler::handleUserCommand(const std::vector<std::string>& tokens, d
     if (!msg->channel_id) return;
 
     if (authorizedChannelId.empty()) {
-        return;  // not configured yet
+        return;
     }
 
     if (std::strcmp(msg->channel_id, authorizedChannelId.c_str()) != 0) {
-        return;  // silent ignore
+        return;
     }
 
     if (tokens.size() < 2) {
