@@ -8,6 +8,7 @@
 #include "lcd.h"
 #include "pins.h"
 #include "wifi_credentials.h"
+#include "discord_config.h"
 
 MotorController motor(MOTOR_STEP_PIN, MOTOR_DIR_PIN, MOTOR_RELAY_PIN);
 LCDDisplay lcd(LCD_I2C_ADDRESS, LCD_COLS, LCD_ROWS);
@@ -23,7 +24,7 @@ void setup() {
     discordHandler.setCallback([](Event e) {fsm.handleEvent(e);});
     // discordHandler.setWiFiPSK(wifi_psk_SSID, wifi_psk_password);
     discordHandler.setWiFiEnterprise(wifi_ent_SSID, wifi_ent_identity, wifi_ent_username, wifi_ent_password);
-    discordHandler.begin();
+    discordHandler.begin(token);
 }
 
 void loop() {

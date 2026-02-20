@@ -16,7 +16,7 @@ extern "C" {
 class DiscordHandler {
 public:
     DiscordHandler(PasscodeManager& passcodeManager);
-    esp_err_t begin();
+    esp_err_t begin(char* token);
     void update();
     void setCallback(EventCallback cb);
     void setAuthorizedChannelId(const std::string& channelId);

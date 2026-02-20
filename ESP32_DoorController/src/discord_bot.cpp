@@ -31,7 +31,7 @@ void DiscordHandler::setWiFiEnterprise(const std::string& ssid,
     eapPassword = password;
 }
 
-esp_err_t DiscordHandler::begin() {
+esp_err_t DiscordHandler::begin(char* token) {
     if (SSID.empty()) {
         ESP_LOGE(TAG, "WiFi SSID not set.");
         return ESP_FAIL;
@@ -78,6 +78,7 @@ esp_err_t DiscordHandler::begin() {
              WiFi.localIP().toString().c_str());
 
     discord_config_t cfg = {
+        .token = token,
         .intents = DISCORD_INTENT_GUILD_MESSAGES |
                    DISCORD_INTENT_MESSAGE_CONTENT
     };
