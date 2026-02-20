@@ -219,6 +219,8 @@ void DiscordHandler::handleMessage(discord_message_t* msg) {
             "!admin setchannel <channel_id>\n"
             "!admin setrole <role_id>\n"
             "!admin setperm <permission_bits>\n"
+            "!admin wifi_psk <SSID> <password>\n"
+            "!admin wifi_enterprise <SSID> <identity> <username> <password>\n"
             "!admin config";
         sendSimpleMessage(msg->channel_id, help);
     } else if (tokens[0] == "!admin") {
@@ -277,7 +279,7 @@ void DiscordHandler::handleAdminCommand(const std::vector<std::string>& tokens, 
     }
 
     if (tokens.size() < 2) {
-        sendSimpleMessage(msg->channel_id, "Usage: !admin <setchannel|setrole|setperm|wifi|config> ...");
+        sendSimpleMessage(msg->channel_id, "Usage: !admin <setchannel|setrole|setperm|wifi_psk|wifi_enterprise|config> ...");
         return;
     }
 
@@ -307,7 +309,7 @@ void DiscordHandler::handleAdminCommand(const std::vector<std::string>& tokens, 
         sendSimpleMessage(msg->channel_id, "Required permissions set to: " + tokens[2]);
     } else if (sub == "wifi_psk") {
         if (tokens.size() < 4) {
-            sendSimpleMessage(msg->channel_id, "Usage: !admin wifi <ssid> <password>");
+            sendSimpleMessage(msg->channel_id, "Usage: !admin wifi_psk <ssid> <password>");
             return;
         }
         setWiFiPSK(tokens[2], tokens[3]);
