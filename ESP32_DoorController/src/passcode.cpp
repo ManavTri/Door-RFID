@@ -19,6 +19,7 @@ void PasscodeManager::generateNewPasscode() {
     }
     genTime = millis();
     lcd.displayCode("Code: " + passcode);
+    Serial.print(passcode);
 }
 
 bool PasscodeManager::checkPasscode(int submitted_code) {
