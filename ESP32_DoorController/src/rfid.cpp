@@ -1,15 +1,26 @@
 #include "rfid.h"
 
-RFIDReader::RFIDReader(int rst_pin, int ss_pin)
-    : rst_pin(rst_pin), ss_pin(ss_pin), mfrc522(rst_pin, ss_pin) {}
+RFIDReader::RFIDReader(int rst, int ss, int sck, int miso, int mosi)
+    : rst_pin(rst_pin), ss_pin(ss_pin), sck_pin(sck), miso_pin(miso), mosi_pin(mosi), mfrc522(rst_pin, ss_pin) {}
 
 void RFIDReader::begin() {
-    SPI.begin();
-    mfrc522.PCD_Init();
     EEPROM.begin(EEPROM_SIZE);
+    Serial.println("EEPROM begin");
+    Serial.println("Configuring WDT...");
+    esp_task_wdt_init(WDT_TIMEOUT, true); //enable panic so ESP32 restarts
+    esp_task_wdt_add(NULL); //add current thread to WDT watch
+    SPI.begin(sck_pin, miso_pin, mosi_pin);
+    Serial.println("SPI begin");
+    mfrc522.PCD_Init();
+    Serial.println("PCD Init");
+    
+    lastCheck = millis();
 }
 
 void RFIDReader::update() {
+    unsigned long now = millis();
+    if (now - lastCheck < CHECK_TIME) return;
+    lastCheck = now;
     byte uid[UID_SIZE];
 
     if (!readCard(uid)) return;
@@ -133,6 +144,7 @@ void RFIDReader::writeEEPROM(const byte uid[UID_SIZE], int index) {
     for (int i = 0; i < UID_SIZE; i++) {
         EEPROM.write(base + i, uid[i]);
     }
+    EEPROM.commit();
 }
 
 void RFIDReader::clearEEPROM(int index) {
@@ -140,4 +152,5 @@ void RFIDReader::clearEEPROM(int index) {
     for (int i = 0; i < UID_SIZE; i++) {
         EEPROM.write(base + i, 0x00);
     }
+    EEPROM.commit();
 }

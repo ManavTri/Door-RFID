@@ -3,15 +3,18 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <EEPROM.h>
+#include <esp_task_wdt.h>
 #include "event.h"
 class RFIDReader
 {
 private:
-    static constexpr int EEPROM_SIZE = 512;
+    static constexpr int EEPROM_SIZE = 32;
     static constexpr int UID_SIZE = 8;
     static constexpr int MAX_TAGS = EEPROM_SIZE / UID_SIZE;
+    static constexpr int CHECK_TIME = 50;
+    static constexpr int WDT_TIMEOUT = 30;
     MFRC522 mfrc522;
-    int ss_pin, rst_pin;
+    int ss_pin, rst_pin, sck_pin, miso_pin, mosi_pin;
     EventCallback callback = nullptr;
     bool adminMode = false;
     bool uidEquals(const byte a[UID_SIZE], const byte b[UID_SIZE]);
@@ -23,8 +26,9 @@ private:
     void readEEPROM(byte out[UID_SIZE], int index);
     void writeEEPROM(const byte uid[UID_SIZE], int index);
     void clearEEPROM(int index);
+    unsigned long lastCheck = 0;
 public:
-    RFIDReader(int rst_pin, int ss_pin);
+    RFIDReader(int rst, int ss, int sck, int miso, int mosi);
     void begin();
     void update();
     void setCallback(EventCallback cb);

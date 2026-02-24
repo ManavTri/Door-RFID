@@ -33,17 +33,17 @@ void DiscordHandler::setWiFiEnterprise(const std::string& ssid,
 
 esp_err_t DiscordHandler::begin(char* token) {
     if (SSID.empty()) {
-        ESP_LOGE(TAG, "WiFi SSID not set.");
+        Serial.println("Empty SSID");
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "Initializing WiFi (SSID: %s)...", SSID.c_str());
+    Serial.printf("Initializing WiFi (SSID: %s)...\n", SSID.c_str());
 
     WiFi.mode(WIFI_STA);
     WiFi.disconnect(true);
     
     if (wifiEnterpriseMode) {
-        ESP_LOGI(TAG, "Connecting using WPA2-Enterprise...");
+        Serial.println("Connecting using WPA2-Enterprise...");
 
         esp_wifi_sta_wpa2_ent_set_identity(
             (uint8_t*)eapIdentity.c_str(), eapIdentity.length());
@@ -55,7 +55,7 @@ esp_err_t DiscordHandler::begin(char* token) {
 
         WiFi.begin(SSID.c_str());
     } else {
-        ESP_LOGI(TAG, "Connecting using WPA2-PSK...");
+        Serial.println("Connecting using WPA2-PSK...");
         WiFi.begin(SSID.c_str(), password.c_str());
     }
 
@@ -63,19 +63,17 @@ esp_err_t DiscordHandler::begin(char* token) {
     int wifiAttempts = 0;
 
     while (WiFi.status() != WL_CONNECTED && wifiAttempts < MAX_WIFI_RETRIES) {
-        ESP_LOGW(TAG, "Connecting to WiFi... (%d/%d)",
-                 wifiAttempts + 1, MAX_WIFI_RETRIES);
+        Serial.printf("Connecting to WiFi... (%d/%d)\n", wifiAttempts + 1, MAX_WIFI_RETRIES);
         delay(500);
         wifiAttempts++;
     }
 
     if (WiFi.status() != WL_CONNECTED) {
-        ESP_LOGE(TAG, "WiFi connection failed. Institutional/captive networks may not be supported.");
+        Serial.println("WiFi connection failed. Institutional/captive networks may not be supported.");
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "WiFi connected, IP: %s",
-             WiFi.localIP().toString().c_str());
+    Serial.printf("WiFi connected, IP: %s\n", WiFi.localIP().toString().c_str());
 
     discord_config_t cfg = {
         .token = token,
@@ -85,7 +83,7 @@ esp_err_t DiscordHandler::begin(char* token) {
 
     client = discord_create(&cfg);
     if (!client) {
-        ESP_LOGE(TAG, "Failed to create Discord client");
+        Serial.println("Failed to create Discord client");
         return ESP_ERR_NO_MEM;
     }
 
@@ -97,29 +95,28 @@ esp_err_t DiscordHandler::begin(char* token) {
     );
 
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to register Discord events");
+        Serial.println("Failed to register Discord events");
         discord_destroy(client);
         client = nullptr;
         return err;
     }
 
     for (int attempt = 1; attempt <= MAX_LOGIN_RETRIES; attempt++) {
-        ESP_LOGI(TAG, "Logging into Discord (attempt %d/%d)...",
-                 attempt, MAX_LOGIN_RETRIES);
+        Serial.printf("Logging into Discord (attempt %d/%d)...\n", attempt, MAX_LOGIN_RETRIES);
 
         err = discord_login(client);
 
         if (err == ESP_OK) {
-            ESP_LOGI(TAG, "Discord login successful");
+            Serial.println("Discord login successful");
             break;
         }
 
-        ESP_LOGW(TAG, "Discord login failed (err=%d)", err);
+        Serial.printf("Discord login failed (err=%d)\n", err);
         delay(3000);
     }
 
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Discord login failed after retries");
+        Serial.println("Discord login failed after retries");
         discord_destroy(client);
         client = nullptr;
         return err;
@@ -134,7 +131,7 @@ void DiscordHandler::update() {
     if (WiFi.status() != WL_CONNECTED) {
         if (now - lastWiFiAttempt > 5000) {
             lastWiFiAttempt = now;
-            ESP_LOGW(TAG, "WiFi disconnected, attempting reconnect...");
+            Serial.println("WiFi disconnected, attempting reconnect...");
             WiFi.disconnect();
             WiFi.begin(SSID.c_str(), password.c_str());
         }
@@ -144,11 +141,11 @@ void DiscordHandler::update() {
     if (!discordConnected) {
         if (now - lastDiscordAttempt > 5000) {
             lastDiscordAttempt = now;
-            ESP_LOGW(TAG, "Discord disconnected, retrying login...");
+            Serial.println("Discord disconnected, retrying login...");
             esp_err_t err = discord_login(client);
             if (err == ESP_OK) {
                 discordConnected = true;
-                ESP_LOGI(TAG, "Discord reconnected");
+                Serial.println("Discord reconnected");
             }
         }
     }
