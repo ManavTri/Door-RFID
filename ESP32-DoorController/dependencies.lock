@@ -1,0 +1,35 @@
+dependencies:
+  abobija/esp-discord:
+    component_hash: 2f8ae0714fd066e6bf03d22f8e3374e15f99d71d0f0f51f22711340c5c6ceb3f
+    dependencies:
+    - name: idf
+      require: private
+      version: ^5.3
+    - name: espressif/esp_websocket_client
+      registry_url: https://components.espressif.com
+      require: private
+      version: ^1.2.3
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 2.0.1
+  espressif/esp_websocket_client:
+    component_hash: c5a067a9fddea370c478017e66fac302f4b79c3d4027e9bdd42a019786cceb92
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com
+      type: service
+    version: 1.6.1
+  idf:
+    source:
+      type: idf
+    version: 5.5.3
+direct_dependencies:
+- abobija/esp-discord
+- idf
+manifest_hash: 4b86000cbe54065ee35a7f560df6783b2689b27844bfc863354732f763b755e8
+target: esp32
+version: 2.0.0
