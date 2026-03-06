@@ -25,15 +25,16 @@ extern "C" {
 
 static discord_handle_t bot;
 
-extern "C" static void bot_event_handler(void* handler_arg, esp_event_base_t base, int32_t event_id, void* event_data) {
+extern "C" void bot_event_handler(void* handler_arg, esp_event_base_t base, int32_t event_id, void* event_data) {
     discord_event_data_t* data = (discord_event_data_t*) event_data;
 
     switch(event_id) {
-        case DISCORD_EVENT_CONNECTED:
+        case DISCORD_EVENT_CONNECTED: {
             discord_session_t* session = (discord_session_t*) data->ptr;
             ESP_LOGI("BOT", "Bot %s#%s connected", session->user->username, session->user->discriminator);
+        }
             break;
-        case DISCORD_EVENT_MESSAGE_RECEIVED:
+        case DISCORD_EVENT_MESSAGE_RECEIVED: {
             discord_message_t* msg = (discord_message_t*) data->ptr;
             ESP_LOGI("BOT", "New message (dm=%s, bot=%s, channel=%s, guild=%s, content=%s)", !msg->guild_id ? "true" : "false", msg->author->username, msg->author->discriminator, msg->author->bot ? "true" : "false", msg->channel_id, msg->guild_id ? msg->guild_id : "NULL", msg->content);
             char* echo_content = estr_cat("Hello ", msg->author->username, ", I am a bot!");
@@ -45,12 +46,15 @@ extern "C" static void bot_event_handler(void* handler_arg, esp_event_base_t bas
                 ESP_LOGI("BOT", "Message sent successfully");
             else
                 ESP_LOGE("BOT", "Message failed to send");
+        }
             break;
-        case DISCORD_EVENT_DISCONNECTED:
+        case DISCORD_EVENT_DISCONNECTED: {
             ESP_LOGW("BOT", "Bot disconnected.");
+        }
             break;
-        default:
+        default: {
             ESP_LOGW("BOT", "Unknown Discord Event");
+        }
     }
 }
 
