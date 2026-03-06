@@ -25,7 +25,7 @@ extern "C" {
 
 static discord_handle_t bot;
 
-extern "C" void bot_event_handler(void* handler_arg, esp_event_base_t base, int32_t event_id, void* event_data) {
+void bot_event_handler(void* handler_arg, esp_event_base_t base, int32_t event_id, void* event_data) {
     discord_event_data_t* data = (discord_event_data_t*) event_data;
 
     switch(event_id) {
@@ -46,6 +46,7 @@ extern "C" void bot_event_handler(void* handler_arg, esp_event_base_t base, int3
                 ESP_LOGI("BOT", "Message sent successfully");
             else
                 ESP_LOGE("BOT", "Message failed to send");
+            free(echo_content);
         }
             break;
         case DISCORD_EVENT_DISCONNECTED: {
