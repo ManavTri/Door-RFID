@@ -27,4 +27,5 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(example_connect());
 
     ESP_LOGI("BOT", "Ran main");
+    esp_restart();
 }
