@@ -27,5 +27,14 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(example_connect());
 
     ESP_LOGI("BOT", "Ran main");
+
+    for (int i = 10; i >= 0; i--) {
+        printf("Restarting in %d seconds...\n", i);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+    printf("Restarting now.\n");
+    fflush(stdout);
+    esp_restart();
+
     esp_restart();
 }
