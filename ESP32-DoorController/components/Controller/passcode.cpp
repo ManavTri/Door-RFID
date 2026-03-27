@@ -1,4 +1,8 @@
 #include "passcode.h"
+extern "C" {
+    #include "esp_timer.h"
+    #include "esp_log.h"
+}
 
 PasscodeManager::PasscodeManager(LCDDisplay& lcd) : lcd(lcd), rng(std::random_device{}()) {}
 
@@ -7,7 +11,7 @@ void PasscodeManager::begin() {
 }
 
 void PasscodeManager::update() {
-    if (millis() - genTime >= MAX_TIME)
+    if (esp_timer_get_time() - genTime >= MAX_TIME)
         generateNewPasscode();
 }
 
@@ -17,9 +21,9 @@ void PasscodeManager::generateNewPasscode() {
     for (byte i = 0; i < CODE_LEN; i++) {
         passcode += String(randInt(rng));
     }
-    genTime = millis();
+    genTime = esp_timer_get_time();
     lcd.displayCode("Code: " + passcode);
-    Serial.print(passcode);
+    ESP_LOGI("PASSCODE", "%s", passcode);
 }
 
 bool PasscodeManager::checkPasscode(int submitted_code) {

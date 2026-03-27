@@ -1,5 +1,4 @@
 #pragma once
-#include <Arduino.h>
 #include "event.h"
 class MotorController
 {

@@ -1,6 +1,25 @@
 #include "discord_bot.h"
 #include <cstring>
 #include <cstdlib>
+#include <stdio.h>
+#include <inttypes.h>
+#include <estr.h>
+extern "C"
+{
+    #include "sdkconfig.h"
+    #include "freertos/FreeRTOS.h"
+    #include "freertos/task.h"
+    #include "esp_chip_info.h"
+    #include "esp_flash.h"
+    #include "esp_log.h"
+    #include "esp_event.h"
+    #include "esp_system.h"
+    #include "nvs_flash.h"
+    #include "protocol_examples_common.h"
+    #include "discord.h"
+    #include "discord/session.h"
+    #include "discord/message.h"
+}
 
 DiscordHandler::DiscordHandler(PasscodeManager& pcm)
     : client(nullptr),
