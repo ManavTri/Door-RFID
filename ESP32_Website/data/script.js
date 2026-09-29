@@ -8,6 +8,7 @@ function openDoor() {
   button.disabled = true;
   label.innerText = "Opening...";
   label.style.color = "#ffc107";
+  console.log("Open Door Button was pressed.");
 
   // Send request to the ESP32
   fetch("/open-door")
