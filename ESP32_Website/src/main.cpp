@@ -12,16 +12,17 @@ constexpr int stepPin = 26;
 constexpr int dirPin = 27;
 constexpr int enPin = 25; // A4988 ENABLE pin is active LOW (LOW = driver enabled)
 
-// Flag for motor (volatile as can be changed from webpage)
+// Flag for motor (volatile as can be changed from async webpage)
 volatile bool openDoor = false;
 
-// How long to hold the latch open before auto-closing, in milliseconds.
+// How long to hold the latch open before closing, in milliseconds.
 constexpr unsigned long openTime = 3000;
 
 // Timestamp (millis()) of when the door entered the Open state.
 unsigned long openStartTime = 0;
 
 // How far the motor needs to travel to fully open the door, in steps.
+// 200 steps/rev × 5 (gear ratio) = 1000 steps
 constexpr int stepsToOpen = 1000;
 
 // Create the AsyncWebServer object on port 80
@@ -38,8 +39,7 @@ enum class MotorState {
 
 MotorState state = MotorState::Closed;
 
-// Human-readable status derived from `state`, used for the webpage poll.
-// (Avoids sharing a mutable Arduino String across the web-server task and loop().)
+// Human-readable status derived from `state`, used for the webpage poll
 const char* statusText() {
   switch (state) {
     case MotorState::Closed:  return "Closed";
@@ -96,7 +96,7 @@ void setup() {
   pinMode(stepPin, OUTPUT);
   pinMode(dirPin, OUTPUT);
   pinMode(enPin, OUTPUT);
-  digitalWrite(enPin, LOW);  // LOW = enabled
+  digitalWrite(enPin, HIGH);  // LOW = enabled, HIGH = disabled (start out disabled, enable when needed)
   digitalWrite(dirPin, HIGH);
 }
 
@@ -118,9 +118,9 @@ void loop() {
   }
 
   // Blocking motor movement
+  // Async Web Server should be fine to run despite the blocking loop
   if (state == MotorState::Opening || state == MotorState::Closing) {
     // One full output revolution:
-    // 200 steps/rev × 5 (gear ratio) = 1000 steps
     for (int i = 0; i < stepsToOpen; i++) {
       digitalWrite(stepPin, HIGH);
       delayMicroseconds(800);
@@ -131,7 +131,7 @@ void loop() {
     if (state == MotorState::Opening) {
       Serial.println("DOOR OPEN");
       state = MotorState::Open;
-      openStartTime = millis(); // start the dwell timer
+      openStartTime = millis(); // start the timer
       digitalWrite(enPin, HIGH); // de-energize motor to reduce heat while idle
     } else if (state == MotorState::Closing) {
       Serial.println("DOOR CLOSED");
