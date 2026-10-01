@@ -3,6 +3,7 @@
 // #include <AccelStepper.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <ESPAsyncDNSServer.h>
 #include <LittleFS.h> // used to include the html,css,js webpage code
 #include <string>
 #include "cred.h" // Sets access point credentials (ignored by Git)
@@ -24,6 +25,11 @@ unsigned long openStartTime = 0;
 // How far the motor needs to travel to fully open the door, in steps.
 // 200 steps/rev × 5 (gear ratio) = 1000 steps
 constexpr int stepsToOpen = 1000;
+
+// Create AsyncDNSServer object on port 53 
+// Used for implementing a captive portal to redirect all traffic to this server's IP
+AsyncDNSServer dnsServer;
+constexpr byte dnsPort = 53;
 
 // Create the AsyncWebServer object on port 80
 // Can handle HTTP requests despite blocking motor controls
@@ -65,9 +71,19 @@ void setup() {
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
 
+  // Configure and Start DNS Server
+  dnsServer.setTTL(300);
+  dnsServer.setErrorReplyCode(AsyncDNSReplyCode::ServerFailure);
+  dnsServer.start(dnsPort, "*", WiFi.softAPIP());
+
   // Serve the root page from LittleFS
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(LittleFS, "/index.html", "text/html");
+    if (LittleFS.exists("/index.html"))
+      request->send(LittleFS, "/index.html", "text/html");
+    else {
+      Serial.println("index.html not found in LittleFS");
+      request->send(404, "text/plain", "index.html not found in LittleFS");
+    }
   });
 
   // HTTP request from webpage to open door
@@ -87,6 +103,19 @@ void setup() {
 
   // Serve static files from LittleFS
   server.serveStatic("/", LittleFS, "/");
+
+  // Implements captive portal for specific URLs that OS's check
+  // TODO: finish captive portal
+  server.on("", HTTP_GET, [](AsyncWebServerRequest *request){
+
+  });
+
+  // Implements captive portal as a catch-all
+  server.onNotFound([](AsyncWebServerRequest *request){
+    Serial.print("Redirecting unmatched request for: ");
+    Serial.println(request->url());
+    request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+  });
 
   // Start the background server
   server.begin();
