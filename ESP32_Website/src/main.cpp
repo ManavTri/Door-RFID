@@ -30,6 +30,8 @@ constexpr int stepsToOpen = 1000;
 // Used for implementing a captive portal to redirect all traffic to this server's IP
 AsyncDNSServer dnsServer;
 constexpr byte dnsPort = 53;
+constexpr int dnsTTL = 3600; // refresh cache every hour
+String softAPIPStr; // store our ip as string for redirects
 
 // Create the AsyncWebServer object on port 80
 // Can handle HTTP requests despite blocking motor controls
@@ -66,15 +68,22 @@ void setup() {
   }
 
   // Start the Access Point
-  WiFi.softAP(ssid, password);
+  if (!WiFi.softAP(ssid, password)) {
+    Serial.println("Failed to start access point server");
+    return;
+  }
   Serial.println();
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
 
   // Configure and Start DNS Server
-  dnsServer.setTTL(300);
+  dnsServer.setTTL(3600);
   dnsServer.setErrorReplyCode(AsyncDNSReplyCode::ServerFailure);
-  dnsServer.start(dnsPort, "*", WiFi.softAPIP());
+  if (!dnsServer.start(dnsPort, "*", WiFi.softAPIP())) {
+    Serial.println("Failed to start DNS server");
+    return;
+  }
+  softAPIPStr = "http://" + WiFi.softAPIP().toString() + "/";
 
   // Serve the root page from LittleFS
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -105,16 +114,24 @@ void setup() {
   server.serveStatic("/", LittleFS, "/");
 
   // Implements captive portal for specific URLs that OS's check
-  // TODO: finish captive portal
-  server.on("", HTTP_GET, [](AsyncWebServerRequest *request){
+  // A tier from https://github.com/LuanTechAutomation/esp-captive-portal/tree/main
+  server.on("/generate_204", [](AsyncWebServerRequest *request) { request->redirect(softAPIPStr); });		   // android captive portal redirect
+  server.on("/redirect", [](AsyncWebServerRequest *request) { request->redirect(softAPIPStr); });			   // microsoft redirect
+  server.on("/hotspot-detect.html", [](AsyncWebServerRequest *request) { request->redirect(softAPIPStr); });  // apple call home
+  server.on("/canonical.html", [](AsyncWebServerRequest *request) { request->redirect(softAPIPStr); });	   // firefox captive portal call home
+  server.on("/success.txt", [](AsyncWebServerRequest *request) { request->send(200); });					   // firefox captive portal call home
+  server.on("/ncsi.txt", [](AsyncWebServerRequest *request) { request->redirect(softAPIPStr); });			   // windows call home
 
-  });
+  // added redirects I noticed from the catch-all
+  // redirect /favicon.ico and /gen_204
+  server.on("/favicon.ico", [](AsyncWebServerRequest *request) { request->redirect(softAPIPStr); }); // an android phone used this
+  server.on("/gen_204", [](AsyncWebServerRequest *request) { request->redirect(softAPIPStr); }); // an iphone used this
 
   // Implements captive portal as a catch-all
   server.onNotFound([](AsyncWebServerRequest *request){
     Serial.print("Redirecting unmatched request for: ");
     Serial.println(request->url());
-    request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+    request->redirect(softAPIPStr);
   });
 
   // Start the background server
